@@ -39,6 +39,7 @@ export default connect(List);
 const Container = styled.section`
   width: 800px;
   margin: 0;
+  margin-top: 120px;
   padding: 24px;
   list-style: none;
 `;

@@ -75,7 +75,6 @@ const HeadContainer = styled.div`
 `;
 
 const Main = styled.div`
-  margin-top: 120px;
   display: flex;
   justify-content: center;
   background-image: linear-gradient(
