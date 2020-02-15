@@ -17,15 +17,16 @@ const Viewpager = ({ links, state, actions }) => {
   // Update ref for onRest callback
   const onRestRef = React.useRef(null);
 
-  React.useLayoutEffect(() => {
-    onRestRef.current = i => {
+  onRestRef.current = React.useCallback(
+    i => {
       if (i === index && isSwiping) {
         setRelativeIndex(index);
         setIsSwiping(false);
         window.scrollTo(0, 0);
       }
-    };
-  }, [isSwiping, setRelativeIndex, setIsSwiping, index, relativeIndex]);
+    },
+    [isSwiping, setRelativeIndex, setIsSwiping, index, relativeIndex]
+  );
 
   // Spring animation for each post.
   const [props, set] = useSprings(links.length, i => ({
@@ -33,6 +34,11 @@ const Viewpager = ({ links, state, actions }) => {
     deltaX: 0,
     display: "block",
     position: i === relativeIndex ? "relative" : "fixed",
+    config: {
+      clamp: true,
+      friction: 40,
+      tension: 500
+    },
     onRest: () => {
       onRestRef.current(i);
     }
