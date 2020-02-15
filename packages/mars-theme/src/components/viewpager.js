@@ -1,7 +1,7 @@
 import React from "react";
 import { connect, styled } from "frontity";
 import clamp from "lodash-es/clamp";
-import { useSprings, animated } from "react-spring";
+import { useSprings, animated, interpolate } from "react-spring";
 import { useDrag } from "react-use-gesture";
 import Post from "./post";
 
@@ -9,11 +9,33 @@ import Post from "./post";
 const Viewpager = ({ links, state, actions }) => {
   // Current index (derived from current link).
   const index = links.indexOf(state.router.link);
+  // Index of the relative post.
+  const [relativeIndex, setRelativeIndex] = React.useState(index);
+  // True during swipe.
+  const [isSwiping, setIsSwiping] = React.useState(false);
+
+  // Update ref for onRest callback
+  const onRestRef = React.useRef(null);
+
+  React.useLayoutEffect(() => {
+    onRestRef.current = i => {
+      if (i === index && isSwiping) {
+        setRelativeIndex(index);
+        setIsSwiping(false);
+        window.scrollTo(0, 0);
+      }
+    };
+  }, [isSwiping, setRelativeIndex, setIsSwiping, index, relativeIndex]);
 
   // Spring animation for each post.
   const [props, set] = useSprings(links.length, i => ({
     x: i - index,
-    display: "block"
+    deltaX: 0,
+    display: "block",
+    position: i === relativeIndex ? "relative" : "fixed",
+    onRest: () => {
+      onRestRef.current(i);
+    }
   }));
 
   // Update post positions everytime index changes.
@@ -21,32 +43,55 @@ const Viewpager = ({ links, state, actions }) => {
     set(i => {
       if (i < index - 1 || i > index + 1) return { display: "none" };
       const x = i - index;
-      return { x, display: "block" };
+      return {
+        x,
+        deltaX: 0,
+        display: "block",
+        position: i === relativeIndex ? "relative" : "fixed"
+      };
     });
-  }, [index]);
+
+    if (index !== relativeIndex) setIsSwiping(true);
+  }, [index, relativeIndex]);
 
   // Handler to swipe posts.
   const bind = useDrag(
-    ({ canceled, swipe: [swipeX], cancel }) => {
+    ({ canceled, swipe: [swipeX], delta: [deltaX], cancel }) => {
       // Change current link if swipe is detected and drag was not canceled.
       if (swipeX && !canceled) {
         cancel();
         const link = links[clamp(index - swipeX, 0, links.length - 1)];
         actions.router.set(link);
       }
+
+      // Update position using deltaX
+      set(i => {
+        if (i < index - 1 || i > index + 1) return { display: "none" };
+        const x = i - index;
+        return {
+          x,
+          deltaX,
+          display: "block",
+          position: i === relativeIndex ? "relative" : "fixed"
+        };
+      });
     },
     { axis: "x" }
   );
 
   return (
     <Container>
-      {props.map(({ x, display }, i) => (
+      {props.map(({ x, deltaX, display, position }, i) => (
         <animated.div
-          {...bind()}
+          {...(!isSwiping ? bind() : {})}
           key={links[i]}
           style={{
             display,
-            transform: x.interpolate(x => `translate3d(${x * 100}%,0,0)`)
+            position,
+            transform: interpolate(
+              [x, deltaX],
+              (x, deltaX) => `translate3d(calc(${x * 100}% + ${deltaX}px),0,0)`
+            )
           }}
         >
           {<Post data={state.source.get(links[i])} />}
@@ -59,22 +104,17 @@ const Viewpager = ({ links, state, actions }) => {
 export default connect(Viewpager);
 
 const Container = styled.div`
-  position: fixed;
+  position: relative;
   top: 0;
-  overflow: hidden;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
+  width: 100vw;
+  overflow-x: hidden;
 
   & > div {
-    width: 100vw;
-    height: 100vh;
-    overflow-y: auto;
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin-top: 120px;
     will-change: transform;
-    position: absolute;
     box-sizing: border-box;
-    padding-top: 100px;
-
-    background-color: white;
   }
 `;
