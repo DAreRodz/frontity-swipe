@@ -4,9 +4,7 @@ import Link from "./link";
 import List from "./list";
 import FeaturedMedia from "./featured-media";
 
-const Post = ({ state, actions, libraries }) => {
-  // Get information about the current URL.
-  const data = state.source.get(state.router.link);
+const Post = ({ state, actions, libraries, data }) => {
   // Get the data of the post.
   const post = state.source[data.type][data.id];
   // Get the data of the author.
@@ -68,9 +66,10 @@ const Post = ({ state, actions, libraries }) => {
 export default connect(Post);
 
 const Container = styled.div`
-  width: 800px;
+  max-width: 800px;
   margin: 0;
   padding: 24px;
+  box-sizing: border-box;
 `;
 
 const Title = styled.h1`

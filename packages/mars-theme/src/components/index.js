@@ -2,10 +2,10 @@ import React from "react";
 import { Global, css, connect, styled, Head } from "frontity";
 import Header from "./header";
 import List from "./list";
-import Post from "./post";
-import Page404 from "./page404.js";
+import Viewpager from "./viewpager";
 import Loading from "./loading";
 import Title from "./title";
+import PageError from "./page404";
 
 /**
  * Theme is the root React component of our theme. The one we will export
@@ -14,6 +14,9 @@ import Title from "./title";
 const Theme = ({ state }) => {
   // Get information about the current URL.
   const data = state.source.get(state.router.link);
+
+  // Get list of links to be used by Viewpager.
+  const links = state.source.get(state.source.homepage).items.map(i => i.link);
 
   return (
     <>
@@ -36,10 +39,10 @@ const Theme = ({ state }) => {
       {/* Add the main section. It renders a different component depending
       on the type of URL we are in. */}
       <Main>
-        {(data.isFetching && <Loading />) ||
+        {(data.isPostType && <Viewpager links={links} />) ||
+          (data.isFetching && <Loading />) ||
           (data.isArchive && <List />) ||
-          (data.isPostType && <Post />) ||
-          (data.is404 && <Page404 />)}
+          (data.is404 && <PageError />)}
       </Main>
     </>
   );
