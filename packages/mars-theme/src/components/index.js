@@ -64,6 +64,10 @@ const globalStyles = css`
 `;
 
 const HeadContainer = styled.div`
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 10;
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -71,6 +75,7 @@ const HeadContainer = styled.div`
 `;
 
 const Main = styled.div`
+  margin-top: 120px;
   display: flex;
   justify-content: center;
   background-image: linear-gradient(
