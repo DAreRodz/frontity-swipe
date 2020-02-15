@@ -35,6 +35,9 @@ const marsTheme = {
       },
       closeMobileMenu: ({ state }) => {
         state.theme.isMobileMenuOpen = false;
+      },
+      beforeSSR: async ({ state, actions }) => {
+        await actions.source.fetch(state.source.homepage);
       }
     }
   },
