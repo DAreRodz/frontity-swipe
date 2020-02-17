@@ -84,7 +84,10 @@ const Viewpager = ({ links, state, actions }) => {
             )
           }}
         >
-          {<Post data={state.source.get(links[i])} />}
+          {/* Render only the previous, current and next posts. */}
+          {!(i < prevIndex - 1 || i > prevIndex + 1) && (
+            <Post data={state.source.get(links[i])} />
+          )}
         </animated.div>
       ))}
     </Container>
