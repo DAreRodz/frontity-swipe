@@ -3,6 +3,7 @@ import { Global, css, connect, styled, Head } from "frontity";
 import Header from "./header";
 import List from "./list";
 import Viewpager from "./viewpager";
+import Post from "./post";
 import Loading from "./loading";
 import Title from "./title";
 import PageError from "./page404";
@@ -36,7 +37,10 @@ const Theme = ({ state }) => {
       {/* Add the main section. It renders a different component depending
       on the type of URL we are in. */}
       <Main>
-        {(data.isPostType && <Viewpager links={state.theme.links} />) ||
+        {(data.isPostType && state.theme.links.includes(state.router.link) && (
+          <Viewpager links={state.theme.links} />
+        )) ||
+          (data.isPostType && <Post data={data} />) ||
           (data.isFetching && <Loading />) ||
           (data.isArchive && <List />) ||
           (data.is404 && <PageError />)}
