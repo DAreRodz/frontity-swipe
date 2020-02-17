@@ -106,7 +106,6 @@ const Container = styled.div`
     top: 0;
     left: 0;
     width: 100%;
-    margin-top: 120px;
     will-change: transform;
     box-sizing: border-box;
   }

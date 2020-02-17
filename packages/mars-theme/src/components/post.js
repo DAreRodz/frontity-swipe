@@ -67,7 +67,8 @@ export default connect(Post);
 
 const Container = styled.div`
   max-width: 800px;
-  margin: 0;
+  margin: 0 auto;
+  margin-top: 120px;
   padding: 24px;
   box-sizing: border-box;
 `;
