@@ -15,9 +15,6 @@ const Theme = ({ state }) => {
   // Get information about the current URL.
   const data = state.source.get(state.router.link);
 
-  // Get list of links to be used by Viewpager.
-  const links = state.source.get(state.source.homepage).items.map(i => i.link);
-
   return (
     <>
       {/* Add some metatags to the <head> of the HTML. */}
@@ -39,7 +36,7 @@ const Theme = ({ state }) => {
       {/* Add the main section. It renders a different component depending
       on the type of URL we are in. */}
       <Main>
-        {(data.isPostType && <Viewpager links={links} />) ||
+        {(data.isPostType && <Viewpager links={state.theme.links} />) ||
           (data.isFetching && <Loading />) ||
           (data.isArchive && <List />) ||
           (data.is404 && <PageError />)}
@@ -82,4 +79,5 @@ const Main = styled.div`
     rgba(66, 174, 228, 0.1),
     rgba(66, 174, 228, 0)
   );
+  background-attachment: fixed;
 `;

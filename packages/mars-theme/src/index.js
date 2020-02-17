@@ -21,7 +21,8 @@ const marsTheme = {
       featured: {
         showOnList: false,
         showOnPost: false
-      }
+      },
+      links: []
     }
   },
   /**
@@ -38,6 +39,9 @@ const marsTheme = {
       },
       beforeSSR: async ({ state, actions }) => {
         await actions.source.fetch(state.source.homepage);
+        state.theme.links = state.source
+          .get(state.source.homepage)
+          .items.map(i => i.link);
       }
     }
   },
