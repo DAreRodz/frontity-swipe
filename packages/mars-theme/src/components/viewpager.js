@@ -5,17 +5,25 @@ import { useSprings, animated, interpolate } from "react-spring";
 import { useDrag } from "react-use-gesture";
 import Post from "./post";
 
+/**
+ * Return a function that is used for each animated element (post) to
+ * generate the new style props. These props are used when rendering
+ * the `animated.div` elements that contain the posts.
+ */
 const getNewProps = ({ currentIndex, prevIndex, deltaX = 0 }) => (index) =>
-  index < currentIndex - 1 || index > currentIndex + 1
-    ? { display: "none" }
-    : {
-        x: index - currentIndex,
+  Math.abs(index - prevIndex) <= 1
+    ? {
+        deltaIndex: index - currentIndex,
         deltaX,
         display: "block",
         position: index === prevIndex ? "relative" : "fixed",
-      };
+      }
+    : { display: "none" };
 
-// Based on https://codesandbox.io/s/v364z
+/**
+ * Component that renders a swipeable list of posts.
+ * It receives a `links` array as prop.
+ */
 const Viewpager = ({ links, state, actions }) => {
   // Current index (derived from current link).
   const currentIndex = links.indexOf(state.router.link);
@@ -44,7 +52,7 @@ const Viewpager = ({ links, state, actions }) => {
 
   // Spring animation for each post.
   const [props, set] = useSprings(links.length, (index) => ({
-    x: index - currentIndex,
+    deltaIndex: index - currentIndex,
     deltaX: 0,
     display: "block",
     position: index === prevIndex ? "relative" : "fixed",
@@ -68,27 +76,27 @@ const Viewpager = ({ links, state, actions }) => {
       // Update position using deltaX
       set(getNewProps({ currentIndex, prevIndex, deltaX }));
     },
+    // Block movements to the "x" axis.
     { axis: "x" }
   );
 
   return (
     <Container {...bind()}>
-      {props.map(({ x, deltaX, display, position }, index) => (
+      {props.map(({ deltaIndex, deltaX, display, position }, index) => (
         <animated.div
           key={links[index]}
           style={{
             display,
             position,
             transform: interpolate(
-              [x, deltaX],
-              (x, deltaX) => `translate3d(calc(${x * 100}% + ${deltaX}px),0,0)`
+              [deltaIndex, deltaX],
+              (deltaIndex, deltaX) =>
+                `translate3d(calc(${deltaIndex * 100}% + ${deltaX}px),0,0)`
             ),
           }}
         >
           {/* Render only the previous, current and next posts. */}
-          {Math.abs(index - prevIndex) <= 1 && (
-            <Post data={state.source.get(links[index])} />
-          )}
+          {display !== "none" && <Post data={state.source.get(links[index])} />}
         </animated.div>
       ))}
     </Container>
