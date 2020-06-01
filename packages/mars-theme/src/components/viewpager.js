@@ -5,54 +5,54 @@ import { useSprings, animated, interpolate } from "react-spring";
 import { useDrag } from "react-use-gesture";
 import Post from "./post";
 
-const getNewProps = ({ index, prevIndex, deltaX = 0 }) => (i) =>
-  i < index - 1 || i > index + 1
+const getNewProps = ({ currentIndex, prevIndex, deltaX = 0 }) => (index) =>
+  index < currentIndex - 1 || index > currentIndex + 1
     ? { display: "none" }
     : {
-        x: i - index,
+        x: index - currentIndex,
         deltaX,
         display: "block",
-        position: i === prevIndex ? "relative" : "fixed",
+        position: index === prevIndex ? "relative" : "fixed",
       };
 
 // Based on https://codesandbox.io/s/v364z
 const Viewpager = ({ links, state, actions }) => {
   // Current index (derived from current link).
-  const index = links.indexOf(state.router.link);
-  const [prevIndex, setPrevIndex] = React.useState(index);
+  const currentIndex = links.indexOf(state.router.link);
+  const [prevIndex, setPrevIndex] = React.useState(currentIndex);
 
   // Update ref for onRest callback
   const onRestRef = React.useRef(null);
   onRestRef.current = React.useCallback(
-    (i) => {
-      if (i === index && index !== prevIndex) {
-        setPrevIndex(index);
+    (index) => {
+      if (index === currentIndex && currentIndex !== prevIndex) {
+        setPrevIndex(currentIndex);
         window.scrollTo(0, 0);
       }
     },
-    [setPrevIndex, index, prevIndex]
+    [setPrevIndex, currentIndex, prevIndex]
   );
 
   // Spring animation for each post.
-  const [props, set] = useSprings(links.length, (i) => ({
-    x: i - index,
+  const [props, set] = useSprings(links.length, (index) => ({
+    x: index - currentIndex,
     deltaX: 0,
     display: "block",
-    position: i === prevIndex ? "relative" : "fixed",
+    position: index === prevIndex ? "relative" : "fixed",
     config: {
       clamp: true,
       friction: 40,
       tension: 500,
     },
     onRest: () => {
-      onRestRef.current(i);
+      onRestRef.current(index);
     },
   }));
 
-  // Update post positions everytime index changes.
+  // Update post positions everytime currentIndex changes.
   React.useLayoutEffect(() => {
-    set(getNewProps({ index, prevIndex }));
-  }, [index, prevIndex]);
+    set(getNewProps({ currentIndex, prevIndex }));
+  }, [currentIndex, prevIndex]);
 
   // Handler to swipe posts.
   const bind = useDrag(
@@ -60,11 +60,11 @@ const Viewpager = ({ links, state, actions }) => {
       // Change current link if swipe is detected and drag was not canceled.
       if (swipeX && !canceled) {
         cancel();
-        const link = links[clamp(index - swipeX, 0, links.length - 1)];
+        const link = links[clamp(currentIndex - swipeX, 0, links.length - 1)];
         actions.router.set(link);
       }
       // Update position using deltaX
-      set(getNewProps({ index, prevIndex, deltaX }));
+      set(getNewProps({ currentIndex, prevIndex, deltaX }));
     },
     { axis: "x" }
   );
