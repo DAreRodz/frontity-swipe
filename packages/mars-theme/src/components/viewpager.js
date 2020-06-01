@@ -19,11 +19,20 @@ const getNewProps = ({ currentIndex, prevIndex, deltaX = 0 }) => (index) =>
 const Viewpager = ({ links, state, actions }) => {
   // Current index (derived from current link).
   const currentIndex = links.indexOf(state.router.link);
+
+  // Store the previous index.
   const [prevIndex, setPrevIndex] = React.useState(currentIndex);
 
-  // Update ref for onRest callback
-  const onRestRef = React.useRef(null);
-  onRestRef.current = React.useCallback(
+  /**
+   * Updates `prevIndex` and scroll to the top.
+   *
+   * This function is executed in the `onRest` callback for each
+   * spring element. It needs to be defined this way because it
+   * depends on state variables, and thus it needs to be updated,
+   * but cannot be assigned directly to the `onRest` callback.
+   */
+  const updateIndex = React.useRef(null);
+  updateIndex.current = React.useCallback(
     (index) => {
       if (index === currentIndex && currentIndex !== prevIndex) {
         setPrevIndex(currentIndex);
@@ -39,14 +48,7 @@ const Viewpager = ({ links, state, actions }) => {
     deltaX: 0,
     display: "block",
     position: index === prevIndex ? "relative" : "fixed",
-    config: {
-      clamp: true,
-      friction: 40,
-      tension: 500,
-    },
-    onRest: () => {
-      onRestRef.current(index);
-    },
+    onRest: () => updateIndex.current(index),
   }));
 
   // Update post positions everytime currentIndex changes.
@@ -56,10 +58,10 @@ const Viewpager = ({ links, state, actions }) => {
 
   // Handler to swipe posts.
   const bind = useDrag(
-    ({ canceled, swipe: [swipeX], delta: [deltaX], cancel }) => {
-      // Change current link if swipe is detected and drag was not canceled.
-      if (swipeX && !canceled) {
-        cancel();
+    ({ swipe: [swipeX], delta: [deltaX] }) => {
+      // Change current link if swipe is detected.
+      if (swipeX) {
+        // Update current link.
         const link = links[clamp(currentIndex - swipeX, 0, links.length - 1)];
         actions.router.set(link);
       }
